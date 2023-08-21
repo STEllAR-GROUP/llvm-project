@@ -121,7 +121,7 @@
 #if ! KMP_MIC
 # define USE_LOAD_BALANCE 1
 #endif
-#if ! (KMP_OS_WINDOWS || KMP_OS_DARWIN)
+#if ! (KMP_OS_WINDOWS || KMP_OS_DARWIN || HPXC)
 # define KMP_TDATA_GTID 1
 #endif
 #if STUBS_LIBRARY
