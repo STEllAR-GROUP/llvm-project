@@ -1415,12 +1415,21 @@ void __kmp_suspend_initialize_thread(kmp_info_t *th) {
   } else {
     // Claim to be the initializer and do initializations
     int status;
+#if HPXC
+    status = hpxc_cond_init(&th->th.th_suspend_cv.c_cond,
+                               &__kmp_suspend_cond_attr);
+    KMP_CHECK_SYSFAIL("hpxc_cond_init", status);
+    status = hpxc_mutex_init(&th->th.th_suspend_mx.m_mutex,
+                                &__kmp_suspend_mutex_attr);
+    KMP_CHECK_SYSFAIL("hpxc_mutex_init", status);
+#else
     status = pthread_cond_init(&th->th.th_suspend_cv.c_cond,
                                &__kmp_suspend_cond_attr);
     KMP_CHECK_SYSFAIL("pthread_cond_init", status);
     status = pthread_mutex_init(&th->th.th_suspend_mx.m_mutex,
                                 &__kmp_suspend_mutex_attr);
     KMP_CHECK_SYSFAIL("pthread_mutex_init", status);
+#endif
     KMP_ATOMIC_ST_REL(&th->th.th_suspend_init_count, new_value);
   }
 }
@@ -1430,7 +1439,16 @@ void __kmp_suspend_uninitialize_thread(kmp_info_t *th) {
     /* this means we have initialize the suspension pthread objects for this
        thread in this instance of the process */
     int status;
-
+#if HPXC
+status = hpxc_cond_destroy(&th->th.th_suspend_cv.c_cond);
+    if (status != 0 && status != EBUSY) {
+      KMP_SYSFAIL("hpxc_cond_destroy", status);
+    }
+    status = hpxc_mutex_destroy(&th->th.th_suspend_mx.m_mutex);
+    if (status != 0 && status != EBUSY) {
+      KMP_SYSFAIL("hpxc_mutex_destroy", status);
+    }
+#else
     status = pthread_cond_destroy(&th->th.th_suspend_cv.c_cond);
     if (status != 0 && status != EBUSY) {
       KMP_SYSFAIL("pthread_cond_destroy", status);
@@ -1439,6 +1457,7 @@ void __kmp_suspend_uninitialize_thread(kmp_info_t *th) {
     if (status != 0 && status != EBUSY) {
       KMP_SYSFAIL("pthread_mutex_destroy", status);
     }
+#endif
     --th->th.th_suspend_init_count;
     KMP_DEBUG_ASSERT(KMP_ATOMIC_LD_RLX(&th->th.th_suspend_init_count) ==
                      __kmp_fork_count);
@@ -1447,17 +1466,31 @@ void __kmp_suspend_uninitialize_thread(kmp_info_t *th) {
 
 // return true if lock obtained, false otherwise
 int __kmp_try_suspend_mx(kmp_info_t *th) {
+#if HPXC
+  return (hpxc_mutex_trylock(&th->th.th_suspend_mx.m_mutex) == 0);
+#else
   return (pthread_mutex_trylock(&th->th.th_suspend_mx.m_mutex) == 0);
+#endif
 }
 
 void __kmp_lock_suspend_mx(kmp_info_t *th) {
+#if HPXC
+  int status = hpxc_mutex_lock(&th->th.th_suspend_mx.m_mutex);
+  KMP_CHECK_SYSFAIL("hpxc_mutex_lock", status);
+#else
   int status = pthread_mutex_lock(&th->th.th_suspend_mx.m_mutex);
   KMP_CHECK_SYSFAIL("pthread_mutex_lock", status);
+#endif
 }
 
 void __kmp_unlock_suspend_mx(kmp_info_t *th) {
+#if HPXC
+  int status = hpxc_mutex_unlock(&th->th.th_suspend_mx.m_mutex);
+  KMP_CHECK_SYSFAIL("hpxc_mutex_unlock", status);
+#else
   int status = pthread_mutex_unlock(&th->th.th_suspend_mx.m_mutex);
   KMP_CHECK_SYSFAIL("pthread_mutex_unlock", status);
+#endif
 }
 
 /* This routine puts the calling thread to sleep after setting the
@@ -1554,8 +1587,13 @@ static inline void __kmp_suspend_template(int th_gtid, C *flag) {
       KF_TRACE(15, ("__kmp_suspend_template: T#%d about to perform"
                     " pthread_cond_wait\n",
                     th_gtid));
+#if HPXC
+      status = hpxc_cond_wait(&th->th.th_suspend_cv.c_cond,
+                                 &th->th.th_suspend_mx.m_mutex);
+#else
       status = pthread_cond_wait(&th->th.th_suspend_cv.c_cond,
                                  &th->th.th_suspend_mx.m_mutex);
+#endif
 #endif // USE_SUSPEND_TIMEOUT
 
       if ((status != 0) && (status != EINTR) && (status != ETIMEDOUT)) {
@@ -1719,8 +1757,13 @@ static inline void __kmp_resume_template(int target_gtid, C *flag) {
                  target_gtid, buffer);
   }
 #endif
+#if HPXC
+  status = hpxc_cond_signal(&th->th.th_suspend_cv.c_cond);
+  KMP_CHECK_SYSFAIL("hpxc_cond_signal", status);
+#else
   status = pthread_cond_signal(&th->th.th_suspend_cv.c_cond);
   KMP_CHECK_SYSFAIL("pthread_cond_signal", status);
+#endif
   __kmp_unlock_suspend_mx(th);
   KF_TRACE(30, ("__kmp_resume_template: T#%d exiting after signaling wake up"
                 " for T#%d\n",
@@ -1985,9 +2028,14 @@ void __kmp_runtime_initialize(void) {
 
 #if HPXC
   status = hpxc_key_create(&__kmp_gtid_threadprivate_key,
+                              __kmp_internal_end_dest);
+  KMP_CHECK_SYSFAIL("hpxc_key_create", status);
+  status = hpxc_mutex_init(&__kmp_wait_mx.m_mutex, &mutex_attr);
+  KMP_CHECK_SYSFAIL("hpxc_mutex_init", status);
+  status = hpxc_cond_init(&__kmp_wait_cv.c_cond, &cond_attr);
+  KMP_CHECK_SYSFAIL("hpxc_cond_init", status);
 #else
   status = pthread_key_create(&__kmp_gtid_threadprivate_key,
-#endif
                               __kmp_internal_end_dest);
   KMP_CHECK_SYSFAIL("pthread_key_create", status);
   status = pthread_mutexattr_init(&mutex_attr);
@@ -2002,6 +2050,7 @@ void __kmp_runtime_initialize(void) {
   KMP_CHECK_SYSFAIL("pthread_cond_init", status);
   status = pthread_condattr_destroy(&cond_attr);
   KMP_CHECK_SYSFAIL("pthread_condattr_destroy", status);
+#endif
 #if USE_ITT_BUILD
   __kmp_itt_initialize();
 #endif /* USE_ITT_BUILD */
@@ -2022,9 +2071,18 @@ void __kmp_runtime_destroy(void) {
 
 #if HPXC
   status = hpxc_key_delete(__kmp_gtid_threadprivate_key);
+  KMP_CHECK_SYSFAIL("hpxc_key_delete", status);
+
+  status = hpxc_mutex_destroy(&__kmp_wait_mx.m_mutex);
+  if (status != 0 && status != EBUSY) {
+    KMP_SYSFAIL("hpxc_mutex_destroy", status);
+  }
+  status = hpxc_cond_destroy(&__kmp_wait_cv.c_cond);
+  if (status != 0 && status != EBUSY) {
+    KMP_SYSFAIL("hpxc_cond_destroy", status);
+  }
 #else
   status = pthread_key_delete(__kmp_gtid_threadprivate_key);
-#endif
   KMP_CHECK_SYSFAIL("pthread_key_delete", status);
 
   status = pthread_mutex_destroy(&__kmp_wait_mx.m_mutex);
@@ -2035,6 +2093,7 @@ void __kmp_runtime_destroy(void) {
   if (status != 0 && status != EBUSY) {
     KMP_SYSFAIL("pthread_cond_destroy", status);
   }
+#endif
 #if KMP_AFFINITY_SUPPORTED
   __kmp_affinity_uninitialize();
 #endif

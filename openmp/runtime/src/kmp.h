@@ -2185,7 +2185,11 @@ typedef struct kmp_win32_cond {
 union KMP_ALIGN_CACHE kmp_cond_union {
   double c_align;
   char c_pad[CACHE_LINE];
+#if HPXC
+  hpxc_cond_t c_cond;
+#else
   pthread_cond_t c_cond;
+#endif
 };
 
 typedef union kmp_cond_union kmp_cond_align_t;
@@ -2193,7 +2197,11 @@ typedef union kmp_cond_union kmp_cond_align_t;
 union KMP_ALIGN_CACHE kmp_mutex_union {
   double m_align;
   char m_pad[CACHE_LINE];
+#if HPXC
+  hpxc_mutex_t m_mutex;
+#else
   pthread_mutex_t m_mutex;
+#endif
 };
 
 typedef union kmp_mutex_union kmp_mutex_align_t;
