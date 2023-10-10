@@ -8,7 +8,7 @@
   
   
 
-if(LIBOMP_OMPT_SUPPORT)
+if(LIBOMP_OMPT_SUPPORT AND (NOT WITH_HPXC))
   include_directories(${LIBOMP_INCLUDE_DIR})
 
   add_library(archer SHARED ompt-tsan.cpp)

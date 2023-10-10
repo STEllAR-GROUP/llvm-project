@@ -355,7 +355,7 @@ ompt_try_start_tool(unsigned int omp_version, const char *runtime_version) {
     return ret;
   }
 
-#if KMP_OS_UNIX
+#if KMP_OS_UNIX && !HPXC
   { // Non-standard: load archer tool if application is built with TSan
     const char *fname = "libarcher.so";
     OMPT_VERBOSE_INIT_PRINT(
