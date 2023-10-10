@@ -118,7 +118,7 @@ endif()
 
 set(ENABLE_OMPT_TOOLS ON)
 # Currently tools are not tested well on Windows or MacOS X.
-if (APPLE OR WIN32 OR WITH_HPXC)
+if (APPLE OR WIN32)
   set(ENABLE_OMPT_TOOLS OFF)
 endif()
 
