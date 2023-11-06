@@ -1822,7 +1822,13 @@ void __kmp_resume_monitor() {
 }
 #endif // KMP_USE_MONITOR
 
-void __kmp_yield() { sched_yield(); }
+void __kmp_yield() { 
+  #if HPXC
+    hpxc_yield();
+  #else
+    sched_yield(); 
+  #endif
+  }
 
 void __kmp_gtid_set_specific(int gtid) {
   if (__kmp_init_gtid) {
