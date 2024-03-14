@@ -25,8 +25,6 @@ if (WITH_HPXC)
   message("Using HPXC")
   set(LIBOMP_USE_STDCPPLIB TRUE)
   find_package(HPX REQUIRED)
-  include_directories("${HPXC_DIR}")
-  add_definitions(-DHPXC)
 endif()
 
 # Must go below project(..)
