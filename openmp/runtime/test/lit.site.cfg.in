@@ -21,8 +21,8 @@ config.is_standalone_build = @OPENMP_STANDALONE_BUILD@
 config.has_omit_frame_pointer_flag = @OPENMP_TEST_COMPILER_HAS_OMIT_FRAME_POINTER_FLAGS@
 config.target_arch = "@LIBOMP_ARCH@"
 config.with_hpxc = "@WITH_HPXC@"
-config.hpxc_header_directory = "@HPXC_DIR@/cmake-install/Debug/include"
-config.hpxc_library_directory = "@HPXC_DIR@/cmake-install/Debug/lib"
+config.hpxc_header_directory = "@HPXC_DIR@/include"
+config.hpxc_library_directory = "@HPXC_DIR@/lib"
 config.hpx_library_directory = "@HPX_DIR@/../../"
 
 # Let the main config do the real work.
