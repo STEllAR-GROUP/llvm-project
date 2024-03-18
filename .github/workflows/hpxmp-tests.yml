@@ -1,0 +1,114 @@
+name: Run HPXMP Tests
+
+on: [pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: stellargroup/build_env:latest
+
+    steps:
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            libc++-12-dev \
+            libc++abi-12-dev
+
+      - name: Set ROOT_DIR
+        run: |
+          echo "ROOT_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+
+      - name: Build HPX
+        run: |
+          HPX_SRC_DIR=${ROOT_DIR}/hpx
+          HPX_BUILD_DIR=${HPX_SRC_DIR}/cmake-build-${BUILD_TYPE}
+          HPX_INSTALL_DIR=${HPX_SRC_DIR}/cmake-install-${BUILD_TYPE}
+          git clone --depth 1 https://github.com/STEllAR-GROUP/hpx ${HPX_SRC_DIR}
+          # Full build of HPX is needed to get the headers required by HPXC installed properly 
+          cmake -G Ninja -S ${HPX_SRC_DIR} -B ${HPX_BUILD_DIR} \
+            -DHPX_WITH_FETCH_ASIO=ON \
+            -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+            -DCMAKE_INSTALL_PREFIX=${HPX_INSTALL_DIR} \
+            -DHPX_WITH_DYNAMIC_HPX_MAIN=OFF \
+            -DHPX_WITH_EXAMPLES=OFF \
+            -DHPX_WITH_TESTS=OFF
+          cmake --build ${HPX_BUILD_DIR}
+          cmake --install ${HPX_BUILD_DIR}
+          echo "HPX_INSTALL_DIR=${HPX_SRC_DIR}/cmake-install-${BUILD_TYPE}" >> $GITHUB_ENV
+
+
+      - name: Build HPXC
+        run: |
+          HPXC_SRC_DIR=${ROOT_DIR}/hpxc
+          HPXC_BUILD_DIR=${HPXC_SRC_DIR}/cmake-build-${BUILD_TYPE}
+          HPXC_INSTALL_DIR=${HPXC_SRC_DIR}/cmake-install-${BUILD_TYPE}
+          git clone -b no-args-main-fix https://github.com/STEllAR-GROUP/hpxc ${HPXC_SRC_DIR}
+          cmake -G Ninja -S ${HPXC_SRC_DIR} -B ${HPXC_BUILD_DIR} \
+            -DHPX_DIR=${HPX_INSTALL_DIR}/lib/cmake/HPX \
+            -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+            -DCMAKE_INSTALL_PREFIX=${HPXC_INSTALL_DIR} \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+          cmake --build ${HPXC_BUILD_DIR}
+          cmake --install ${HPXC_BUILD_DIR}
+          echo "HPXC_INSTALL_DIR=${HPXC_SRC_DIR}/cmake-install-${BUILD_TYPE}" >> $GITHUB_ENV
+
+      - name: Fetch LLVM
+        run: |
+          LLVM_SRC_DIR=${ROOT_DIR}/llvm-project
+          git clone -b hpxmp_testing --depth 1 https://github.com/STEllAR-GROUP/llvm-project ${LLVM_SRC_DIR}
+          echo "LLVM_SRC_DIR=${LLVM_SRC_DIR}" >> $GITHUB_ENV
+        
+      # OpenMP test suite requires `FileCheck`, `not` and `llvm-lit` binaries
+      - name: Build LLVM utils
+        run: |
+          LLVM_UTILS_SRC_DIR=${LLVM_SRC_DIR}/llvm
+          LLVM_UTILS_BUILD_DIR=${LLVM_UTILS_SRC_DIR}/cmake-build
+          cmake -G Ninja \
+            -S ${LLVM_UTILS_SRC_DIR} \
+            -B ${LLVM_UTILS_BUILD_DIR} \
+            -DLLVM_ENABLE_PROJECTS="clang;llvm" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_INCLUDE_TESTS=ON
+          cmake --build ${LLVM_UTILS_BUILD_DIR} --target not FileCheck
+          echo "LLVM_UTILS_BIN_DIR=${LLVM_UTILS_BUILD_DIR}/bin" >> $GITHUB_ENV
+
+      - name: Build HPXMP
+        run: |
+          HPXMP_SRC_DIR=${LLVM_SRC_DIR}/openmp
+          HPXMP_BUILD_DIR=${HPXMP_SRC_DIR}/cmake-build-hpxmp-${BUILD_TYPE}
+          HPXMP_INSTALL_DIR=${HPXMP_SRC_DIR}/cmake-install-hpxmp-${BUILD_TYPE}
+          cmake -G Ninja \
+            -DCMAKE_INSTALL_PREFIX=${HPXMP_INSTALL_DIR} \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+            -DCMAKE_VERBOSE_MAKEFILE=ON \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DHPX_DIR=${HPX_INSTALL_DIR}/lib/cmake/HPX \
+            -DHPXC_DIR=${HPXC_INSTALL_DIR} \
+            -DOPENMP_ENABLE_LIBOMPTARGET=OFF \
+            -DLIBOMP_OMPD_SUPPORT=OFF \
+            -DLIBOMP_USE_ITT_NOTIFY=OFF \
+            -DOPENMP_LLVM_TOOLS_DIR=${LLVM_UTILS_BIN_DIR} \
+            -DWITH_HPXC=ON \
+            -Wdev -S ${HPXMP_SRC_DIR} -B ${HPXMP_BUILD_DIR}
+          cmake --build ${HPXMP_BUILD_DIR}
+          cmake --install ${HPXMP_BUILD_DIR}
+          echo "HPXMP_BUILD_DIR=${HPXMP_BUILD_DIR}" >> $GITHUB_ENV
+
+      - name: Run HPXMP tests
+        run: |
+          cd ${HPXMP_BUILD_DIR}
+          cmake --build . --target check-libomp
+
+      - name: Setup tmate session
+        continue-on-error: true
+        uses: mxschmitt/action-tmate@v3
+        with:
+          sudo: false
+
