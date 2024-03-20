@@ -20,7 +20,7 @@ jobs:
         run: |
           echo "ROOT_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
           echo "BUILD_TYPE=Release" >> $GITHUB_ENV
-          # echo "LDFLAGS=-stdlib=libc++" >> $GITHUB_ENV
+          echo "LDFLAGS=-stdlib=libc++" >> $GITHUB_ENV
 
       - name: Build HPX
         run: |
@@ -35,8 +35,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=${HPX_INSTALL_DIR} \
             -DHPX_WITH_DYNAMIC_HPX_MAIN=OFF \
             -DHPX_WITH_EXAMPLES=OFF \
-            -DHPX_WITH_TESTS=OFF  \
-            -DCMAKE_CXX_FLAGS=-stdlib=libc++
+            -DHPX_WITH_TESTS=OFF
           cmake --build ${HPX_BUILD_DIR}
           cmake --install ${HPX_BUILD_DIR}
           echo "HPX_INSTALL_DIR=${HPX_SRC_DIR}/cmake-install-${BUILD_TYPE}" >> $GITHUB_ENV
