@@ -20,6 +20,7 @@ jobs:
         run: |
           echo "ROOT_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
           echo "BUILD_TYPE=Release" >> $GITHUB_ENV
+          echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
           echo "LDFLAGS=-stdlib=libc++" >> $GITHUB_ENV
 
       - name: Build HPX
