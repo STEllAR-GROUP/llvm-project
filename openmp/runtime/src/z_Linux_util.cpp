@@ -2687,7 +2687,7 @@ int __kmp_invoke_microtask(microtask_t pkfn, int gtid, int tid, int argc,
 
 #endif
 
-#if KMP_OS_LINUX
+#if KMP_OS_LINUX && !HPXC
 // Functions for hidden helper task
 namespace {
 // Condition variable for initializing hidden helper team
