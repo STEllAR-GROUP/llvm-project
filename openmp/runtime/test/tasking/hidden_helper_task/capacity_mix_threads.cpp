@@ -1,4 +1,5 @@
 // RUN: %libomp-cxx-compile-and-run
+// UNSUPPORTED: hpx
 
 #include <omp.h>
 

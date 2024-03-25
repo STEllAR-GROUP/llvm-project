@@ -5,6 +5,7 @@
 // RUN: %libomp-compile && env OMP_PLACES=cores OMP_TEAMS_THREAD_LIMIT=1 KMP_TEAMS_THREAD_LIMIT=256 KMP_TEAMS_PROC_BIND=primary %libomp-run
 // RUN: %libomp-compile && env OMP_PLACES=cores OMP_TEAMS_THREAD_LIMIT=1 KMP_TEAMS_THREAD_LIMIT=256 KMP_TEAMS_PROC_BIND=primary KMP_HOT_TEAMS_MAX_LEVEL=2 %libomp-run
 // REQUIRES: linux
+// REQUIRES: affinity
 // UNSUPPORTED: clang-5, clang-6, clang-7, clang-8, clang-9, clang-10
 // UNSUPPORTED: gcc-5, gcc-6, gcc-7, gcc-8
 // UNSUPPORTED: icc

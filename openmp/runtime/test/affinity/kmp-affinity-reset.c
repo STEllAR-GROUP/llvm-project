@@ -1,6 +1,7 @@
 // RUN: %libomp-compile -D_GNU_SOURCE
 // RUN: env OMP_NUM_THREADS=2,2 KMP_AFFINITY=reset,granularity=thread,compact %libomp-run
 // REQUIRES: linux
+// REQUIRES: affinity
 
 #include <stdio.h>
 #include <stdlib.h>

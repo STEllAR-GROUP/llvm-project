@@ -1,4 +1,5 @@
 // RUN: %libomp-compile-and-run
+// UNSUPPORTED: hpx
 #include <stdio.h>
 #include "omp_testsuite.h"
 

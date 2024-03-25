@@ -1,5 +1,6 @@
 // RUN: %libomp-cxx-compile-and-run | %sort-threads | FileCheck %s
 // REQUIRES: ompt
+// UNSUPPORTED: hpx
 
 #include <iostream>
 #include <thread>
