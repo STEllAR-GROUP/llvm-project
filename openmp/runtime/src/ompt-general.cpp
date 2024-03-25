@@ -355,11 +355,13 @@ ompt_try_start_tool(unsigned int omp_version, const char *runtime_version) {
     return ret;
   }
 
-#if KMP_OS_UNIX && !HPXC
-  { // Non-standard: load archer tool if application is built with TSan
+#if KMP_OS_UNIX 
+  { 
+    OMPT_VERBOSE_INIT_PRINT("...searching tool libraries failed.");
+    // Non-standard: load archer tool if application is built with TSan
+  #if !HPXC
     const char *fname = "libarcher.so";
-    OMPT_VERBOSE_INIT_PRINT(
-        "...searching tool libraries failed. Using archer tool.\n");
+    OMPT_VERBOSE_INIT_CONTINUED_PRINT(" Using archer tool.\n");
     OMPT_VERBOSE_INIT_PRINT("Opening %s... ", fname);
     void *h = dlopen(fname, RTLD_LAZY);
     if (h) {
@@ -382,6 +384,7 @@ ompt_try_start_tool(unsigned int omp_version, const char *runtime_version) {
         OMPT_VERBOSE_INIT_CONTINUED_PRINT("Failed: %s\n", dlerror());
       }
     }
+  #endif
   }
 #endif
   OMPT_VERBOSE_INIT_PRINT("No OMP tool loaded.\n");
