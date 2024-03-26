@@ -47,7 +47,7 @@ jobs:
           HPXC_SRC_DIR=${ROOT_DIR}/hpxc
           HPXC_BUILD_DIR=${HPXC_SRC_DIR}/cmake-build-${BUILD_TYPE}
           HPXC_INSTALL_DIR=${HPXC_SRC_DIR}/cmake-install-${BUILD_TYPE}
-          git clone -b no-args-main-fix https://github.com/STEllAR-GROUP/hpxc ${HPXC_SRC_DIR}
+          git clone https://github.com/STEllAR-GROUP/hpxc ${HPXC_SRC_DIR}
           cmake -G Ninja -S ${HPXC_SRC_DIR} -B ${HPXC_BUILD_DIR} \
             -DHPX_DIR=${HPX_INSTALL_DIR}/lib/cmake/HPX \
             -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
