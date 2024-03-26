@@ -9,6 +9,8 @@
 // This test uses -fopenmp-version, which is not a compiler flag that GCC
 // supports.
 // UNSUPPORTED: gcc
+// support for atomic compare was introduced in clang-14
+// UNSUPPORTED: clang-5, clang-6, clang-7, clang-8, clang-9, clang-10, clang-11, clang-12, clang-13
 
 // High parallelism increases our chances of detecting a lack of atomicity.
 #define NUM_THREADS_TRY 256
