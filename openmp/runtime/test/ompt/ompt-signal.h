@@ -2,8 +2,8 @@
 #include <windows.h>
 #define delay() Sleep(1);
 #else
-#include <unistd.h>
-#define delay(t) usleep(t);
+#include <time.h>
+#define delay(t) {struct timespec s; s.tv_sec=0; s.tv_nsec=t; nanosleep(&s, NULL);}
 #endif
 
 // These functions are used to provide a signal-wait mechanism to enforce expected scheduling for the test cases.
