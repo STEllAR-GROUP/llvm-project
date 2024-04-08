@@ -23,7 +23,6 @@ config.target_arch = "@LIBOMP_ARCH@"
 config.with_hpxc = @WITH_HPXC@
 config.hpxc_header_directory = "@HPXC_DIR@/include"
 config.hpxc_library_directory = "@HPXC_DIR@/lib"
-config.hpx_library_directory = "@HPX_DIR@/../../"
 
 # Let the main config do the real work.
 lit_config.load_config(config, "@LIBOMP_BASE_DIR@/test/lit.cfg")
