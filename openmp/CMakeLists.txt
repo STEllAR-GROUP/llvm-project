@@ -20,12 +20,8 @@ if (OPENMP_STANDALONE_BUILD OR "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_S
       "at least 3.20.0 now to avoid issues in the future!")
   endif()
 endif()
+
 option(WITH_HPXC "Use HPX threading system." OFF)
-if (WITH_HPXC)
-  message("Using HPXC")
-  set(LIBOMP_USE_STDCPPLIB TRUE)
-  find_package(HPX REQUIRED)
-endif()
 
 # Must go below project(..)
 include(GNUInstallDirs)
