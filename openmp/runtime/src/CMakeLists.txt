@@ -156,13 +156,11 @@ libomp_get_libflags(LIBOMP_CONFIGURED_LIBFLAGS)
 if(OPENMP_STANDALONE_BUILD OR (NOT OPENMP_ENABLE_LIBOMP_PROFILING))
   add_library(omp ${LIBOMP_LIBRARY_KIND} ${LIBOMP_SOURCE_FILES})
   # Linking command will include libraries in LIBOMP_CONFIGURED_LIBFLAGS
+  target_link_libraries(omp ${LIBOMP_CONFIGURED_LIBFLAGS} ${LIBOMP_DL_LIBS})
   if (WITH_HPXC)
-	  # TODO Must be a better way to write this
+    target_compile_definitions(omp PUBLIC -DHPXC)
 	  target_include_directories(omp PUBLIC ${HPXC_DIR}/include)
-	  target_link_libraries(omp ${LIBOMP_CONFIGURED_LIBFLAGS} ${LIBOMP_DL_LIBS}
-		  ${HPXC_DIR}/cmake-install/${CMAKE_BUILD_TYPE}/lib/libhpx_hpxc.a HPX::hpx)
-  else()
-	  target_link_libraries(omp ${LIBOMP_CONFIGURED_LIBFLAGS} ${LIBOMP_DL_LIBS})
+	  target_link_libraries(omp ${HPXC_DIR}/lib/libhpx_hpxc.so)
   endif()
 else()
   add_llvm_library(omp ${LIBOMP_LIBRARY_KIND} ${LIBOMP_SOURCE_FILES} PARTIAL_SOURCES_INTENDED
