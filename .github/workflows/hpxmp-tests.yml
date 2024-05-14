@@ -19,7 +19,7 @@ jobs:
       - name: Set environment variables
         run: |
           echo "ROOT_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE=Release" >> $GITHUB_ENV
+          echo "BUILD_TYPE=RelWithDebInfo" >> $GITHUB_ENV
           echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
           echo "LDFLAGS=-stdlib=libc++" >> $GITHUB_ENV
 
@@ -36,7 +36,8 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=${HPX_INSTALL_DIR} \
             -DHPX_WITH_DYNAMIC_HPX_MAIN=OFF \
             -DHPX_WITH_EXAMPLES=OFF \
-            -DHPX_WITH_TESTS=OFF
+            -DHPX_WITH_TESTS=OFF \
+            -DHPX_WITH_NETWORKING=OFF
           cmake --build ${HPX_BUILD_DIR}
           cmake --install ${HPX_BUILD_DIR}
           echo "HPX_INSTALL_DIR=${HPX_SRC_DIR}/cmake-install-${BUILD_TYPE}" >> $GITHUB_ENV
@@ -78,7 +79,7 @@ jobs:
             -S ${LLVM_UTILS_SRC_DIR} \
             -B ${LLVM_UTILS_BUILD_DIR} \
             -DLLVM_ENABLE_PROJECTS="clang;llvm" \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
             -DLLVM_INCLUDE_TESTS=ON
           cmake --build ${LLVM_UTILS_BUILD_DIR} --target not FileCheck
           echo "LLVM_UTILS_BIN_DIR=${LLVM_UTILS_BUILD_DIR}/bin" >> $GITHUB_ENV
