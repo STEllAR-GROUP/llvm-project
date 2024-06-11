@@ -157,11 +157,38 @@ if(OPENMP_STANDALONE_BUILD OR (NOT OPENMP_ENABLE_LIBOMP_PROFILING))
   add_library(omp ${LIBOMP_LIBRARY_KIND} ${LIBOMP_SOURCE_FILES})
   # Linking command will include libraries in LIBOMP_CONFIGURED_LIBFLAGS
   target_link_libraries(omp ${LIBOMP_CONFIGURED_LIBFLAGS} ${LIBOMP_DL_LIBS})
+
   if (WITH_HPXC)
-    target_compile_definitions(omp PUBLIC -DHPXC)
-	  target_include_directories(omp PUBLIC ${HPXC_DIR}/include)
-	  target_link_libraries(omp ${HPXC_DIR}/lib/libhpx_hpxc.so)
+  target_compile_definitions(omp PUBLIC -DHPXC)
+  set_target_properties(omp PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+  
+    if(WITH_FETCH_HPXC)
+      include(FetchContent)
+      FetchContent_Declare(
+        HPXC
+        GIT_REPOSITORY git@github.com:STEllAR-GROUP/hpxc.git
+        GIT_TAG cmake-find_package-support
+      )
+      FetchContent_GetProperties(HPXC)
+      if(NOT HPXC_POPULATED)
+        FetchContent_Populate(HPXC)
+        set(HPXC_WITH_DYNAMIC_HPXC_MAIN ON CACHE INTERNAL "")
+        set(HPXC_WITH_SHARED_LIBS ON CACHE INTERNAL "")
+        add_subdirectory(${hpxc_SOURCE_DIR} ${hpxc_BINARY_DIR})
+      endif()
+    else()
+      find_package(HPXC REQUIRED GLOBAL)
+    endif()
+
+    target_link_libraries(omp HPXC::hpxc)
+
+    # Copy the HPXC libraries to the install directory
+    install(DIRECTORY $<TARGET_FILE_DIR:HPXC::hpxc> DESTINATION ${CMAKE_INSTALL_PREFIX}
+      FILES_MATCHING PATTERN "*.a" PATTERN "*.so" PATTERN "*.so.*" PATTERN "*.dylib" PATTERN "*.dll"
+    )
+
   endif()
+
 else()
   add_llvm_library(omp ${LIBOMP_LIBRARY_KIND} ${LIBOMP_SOURCE_FILES} PARTIAL_SOURCES_INTENDED
     LINK_LIBS ${LIBOMP_CONFIGURED_LIBFLAGS} ${LIBOMP_DL_LIBS}
