@@ -21,8 +21,8 @@ config.is_standalone_build = @OPENMP_STANDALONE_BUILD@
 config.has_omit_frame_pointer_flag = @OPENMP_TEST_COMPILER_HAS_OMIT_FRAME_POINTER_FLAGS@
 config.target_arch = "@LIBOMP_ARCH@"
 config.with_hpxc = @WITH_HPXC@
-config.hpxc_header_directory = "@HPXC_DIR@/include"
-config.hpxc_library_directory = "@HPXC_DIR@/lib"
+$<$<BOOL:@WITH_HPXC@>:config.hpxc_library_directory = "$<TARGET_FILE_DIR:HPXC::hpxc>" >
+$<$<BOOL:@WITH_HPXC@>:config.hpxc_header_directories = ["$<JOIN:$<TARGET_PROPERTY:HPXC::hpxc,INCLUDE_DIRECTORIES>,"," >"] >
 
 # Let the main config do the real work.
 lit_config.load_config(config, "@LIBOMP_BASE_DIR@/test/lit.cfg")
