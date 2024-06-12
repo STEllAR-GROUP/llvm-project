@@ -23,6 +23,26 @@ endif()
 
 option(WITH_HPXC "Use HPX threading system." OFF)
 
+if(WITH_HPXC)
+  if(WITH_FETCH_HPXC)
+      include(FetchContent)
+      FetchContent_Declare(
+      HPXC
+      GIT_REPOSITORY git@github.com:STEllAR-GROUP/hpxc.git
+      GIT_TAG cmake-find_package-support
+      )
+      FetchContent_GetProperties(HPXC)
+      if(NOT HPXC_POPULATED)
+      FetchContent_Populate(HPXC)
+      set(HPXC_WITH_DYNAMIC_HPXC_MAIN ON CACHE INTERNAL "")
+      set(HPXC_WITH_SHARED_LIBS ON CACHE INTERNAL "")
+      add_subdirectory(${hpxc_SOURCE_DIR} ${hpxc_BINARY_DIR})
+      endif()
+  else()
+      find_package(HPXC REQUIRED)
+  endif()
+endif()
+
 # Must go below project(..)
 include(GNUInstallDirs)
 
