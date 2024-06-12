@@ -1,3 +1,12 @@
+# -- HPXMP --
+
+This fork of LLVM contains HPXMP, an [HPX](https://github.com/STEllAR-GROUP/hpx)-enabled OpenMP runtime.
+
+HPXMP is a modification of LLVM's OpenMP runtime (contained in the `llvm-project/openmp/` directory) utilizing HPX threading and synchronization primitives instead of relying directly on OS threading. The result is an OpenMP runtime which runs completely "on top of" the HPX runtime. HPXMP is implemented by utilizing [HPXC](https://github.com/STEllAR-GROUP/hpxc/), a POSIX-like interface for creating and managing HPX threads.
+
+An example project that uses HPXMP, along with instructions and helpful scripts, can be found in the [HPXMP meta](https://github.com/STEllAR-GROUP/hpxmp_meta/) repository.
+
+
 # The LLVM Compiler Infrastructure
 
 This directory and its sub-directories contain the source code for LLVM,
