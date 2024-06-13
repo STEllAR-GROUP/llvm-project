@@ -51,7 +51,7 @@ if (${OPENMP_STANDALONE_BUILD})
   find_standalone_test_dependencies()
 
   # Set lit arguments.
-  set(DEFAULT_LIT_ARGS "-a --show-unsupported --show-xfail --timeout=300")
+  set(DEFAULT_LIT_ARGS "-sv --show-unsupported --show-xfail --timeout=300")
   if (MSVC OR XCODE)
     set(DEFAULT_LIT_ARGS "${DEFAULT_LIT_ARGS} --no-progress-bar")
   endif()
